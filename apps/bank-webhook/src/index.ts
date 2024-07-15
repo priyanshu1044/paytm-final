@@ -21,28 +21,38 @@ app.post("/hdfcWebhook", async (req, res) => {
     const paymentInformation = validation.data;
 
     try {
-        await db.$transaction([
-            db.balance.update({
-                where: {
-                    userId: paymentInformation.userId
-                },
-                data: {
-                    amount: {
-                        increment: Number(paymentInformation.amount)
+        const onRampTransaction = await db.onRampTransaction.findUnique({
+            where: {
+                token: paymentInformation.token
+            }
+        });
+        
+        if (onRampTransaction && onRampTransaction.status === "Processing") {
+            await db.$transaction([
+                db.balance.update({
+                    where: {
+                        userId: paymentInformation.userId
+                    },
+                    data: {
+                        amount: {
+                            increment: Number(paymentInformation.amount)
+                        }
                     }
-                }
-            }),
-
-            db.onRampTransaction.update({
-                where: {
-                    token: paymentInformation.token
-                },
-                data: {
-                    status: "Success"
-                }
-            })
-        ]);
-        res.status(200).json({ message: "Transaction successful" }); 
+                }),
+        
+                db.onRampTransaction.update({
+                    where: {
+                        token: paymentInformation.token
+                    },
+                    data: {
+                        status: "Success"
+                    }
+                })
+            ]);
+            res.status(200).json({ message: "Transaction successful" });
+        } else {
+            res.status(400).json({ message: "Transaction cannot be processed" });
+        }
     } catch (e:any) {
         res.status(411).json({message: "Error while processing webhook"})
     }
