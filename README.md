@@ -83,6 +83,18 @@ Ensure you have the following installed on your machine:
    npx prisma migrate dev --name initial_migration
    npx prisma generate
    ```
+5. **Seed the database:**
+
+   you already have seeded data in the database.
+   you can login with the following credentials:
+   ```plaintext
+   number: 1111111111
+   password: alice
+   ```
+   ```plaintext
+   number: 2222222222
+   password: bob
+   ```
 
 ### Development
 
